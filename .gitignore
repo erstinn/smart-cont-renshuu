@@ -78,6 +78,7 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 node_modules/
+
 fabric-ca-server/ca-cert.pem
 fabric-ca-server/IssuerRevocationPublicKey
 fabric-ca-server/fabric-ca-server.db

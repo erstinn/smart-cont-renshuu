@@ -1,7 +1,7 @@
 #############################################################################
 #   This is a configuration file for the fabric-ca-server command.
 #
-#   COMMAND LINE ARGUMENTS AND ENVIRONMENT VARIABLES
+#  TODO COMMAND LINE ARGUMENTS AND ENVIRONMENT VARIABLES
 #   ------------------------------------------------
 #   Each configuration element can be overridden via command line
 #   arguments or environment variables.  The precedence for determining
@@ -66,7 +66,7 @@ crlsizelimit: 512000
 #############################################################################
 tls:
   # Enable TLS (default: false)
-  enabled: false
+  enabled: true
   # TLS for the server's listening port
   certfile:
   keyfile:
@@ -85,14 +85,15 @@ tls:
 #  root CA certificate.
 #############################################################################
 ca:
-  # Name of this CA
-  name:
+  # Name of this CA;
+  #todo often the name
+  name: ahiruca
   # Key file (is only used to import a private key into BCCSP)
   keyfile:
-  # Certificate file (default: ca-cert.pem)
+  # Certificate file (default: ca-cert.pem); the private key
   certfile:
-  # Chain file
-  chainfile:
+  # Chain file; the public key
+  chainfile: #only apply to intermediate CAs
 
 #############################################################################
 #  The gencrl REST endpoint is used to generate a CRL that contains revoked
@@ -128,19 +129,63 @@ registry:
   maxenrollments: -1
 
   # Contains identity information which is used when LDAP is disabled
-  identities:
+  # the list of valid TYPES is client, peer, admin, orderer, and member
+  identities: #all orgs' admin?; jus test admin
     - name: admin
       pass: adminpw
-      type: client
-      affiliation: ""
+      type: admin
+      affiliation: "*"
+      # note on `attrs`, "*" means root/all i think
       attrs:
-        hf.Registrar.Roles: "*"
-        hf.Registrar.DelegateRoles: "*"
+        hf.Registrar.Roles: "*" #roles theyre allowed to *manage*
+        hf.Registrar.DelegateRoles: "*" #roles they can give to a registree for their `hf.registar.roles` attrib
+        hf.Revoker: true #if can revoke identity/certs
+        hf.IntermediateCA: true #if can enroll as an intermediate CA
+        hf.GenCRL: true #if can generate CRL
+        hf.Registrar.Attributes: "*" #attribs theyre allowed to *reg*
+        hf.AffiliationMgr: true #if can manage affils
+    # TODO here onwards are my custom attributes/stuff =============================================================
+    # TODO ====================================== ORG1 =============================================================
+    # general org admin
+    - name: root
+      pass: rootpw
+      type: admin
+      affiliation: "org1"
+      attrs:
+        hf.Registrar.Roles: "client,peer,orderer,member" # cannot manage admins
+        hf.Registrar.DelegateRoles: "client,peer,member" #cannot add admin/orderers
         hf.Revoker: true
         hf.IntermediateCA: true
         hf.GenCRL: true
         hf.Registrar.Attributes: "*"
         hf.AffiliationMgr: true
+      # IT admin
+    - name: ducklee
+      pass: dukli92
+      type: admin
+      affiliation: "org1.it"
+      attrs:
+        hf.Registrar.Roles: "client,peer,orderer,member" # cannot manage admins
+        hf.Registrar.DelegateRoles: "client,peer,member" #cannot add admin/orderers
+        hf.Revoker: true
+        hf.IntermediateCA: true
+        hf.GenCRL: true
+        hf.Registrar.Attributes: "*"
+        hf.AffiliationMgr: true
+
+    # TODO ====================================== ORG2 =============================================================
+    - name: root
+      pass: rootpw
+      type: admin
+      affiliation: "org2"
+      attrs:
+        hf.Registrar.Roles: "*" #roles theyre allowed to *manage*
+        hf.Registrar.DelegateRoles: "*" #roles they can give to a registree for their `hf.registar.roles` attrib
+        hf.Revoker: true #if can revoke identity/certs
+        hf.IntermediateCA: true #if can enroll as an intermediate CA
+        hf.GenCRL: true #if can generate CRL
+        hf.Registrar.Attributes: "*" #attribs theyre allowed to *reg*
+        hf.AffiliationMgr: true #if can manage affils
 
 #############################################################################
 #  Database section
@@ -156,7 +201,7 @@ db:
   type: postgres
   datasource: fabric-ca-server.db
   tls:
-    enabled: false
+    enabled: true
     certfiles:
     client:
       certfile:
@@ -169,58 +214,58 @@ db:
 #     for enrollment requests;
 #  2) To retrieve identity attributes
 #############################################################################
-ldap:
-  # Enables or disables the LDAP client (default: false)
-  # If this is set to true, the "registry" section is ignored.
-  enabled: false
-  # The URL of the LDAP server
-  url: ldap://<adminDN>:<adminPassword>@<host>:<port>/<base>
-  # TLS configuration for the client connection to the LDAP server
-  tls:
-    certfiles:
-    client:
-      certfile:
-      keyfile:
-  # Attribute related configuration for mapping from LDAP entries to Fabric CA attributes
-  attribute:
-    # 'names' is an array of strings containing the LDAP attribute names which are
-    # requested from the LDAP server for an LDAP identity's entry
-    names: ["uid", "member"]
-    # The 'converters' section is used to convert an LDAP entry to the value of
-    # a fabric CA attribute.
-    # For example, the following converts an LDAP 'uid' attribute
-    # whose value begins with 'revoker' to a fabric CA attribute
-    # named "hf.Revoker" with a value of "true" (because the boolean expression
-    # evaluates to true).
-    #    converters:
-    #       - name: hf.Revoker
-    #         value: attr("uid") =~ "revoker*"
-    converters:
-      - name:
-        value:
-    # The 'maps' section contains named maps which may be referenced by the 'map'
-    # function in the 'converters' section to map LDAP responses to arbitrary values.
-    # For example, assume a user has an LDAP attribute named 'member' which has multiple
-    # values which are each a distinguished name (i.e. a DN). For simplicity, assume the
-    # values of the 'member' attribute are 'dn1', 'dn2', and 'dn3'.
-    # Further assume the following configuration.
-    #    converters:
-    #       - name: hf.Registrar.Roles
-    #         value: map(attr("member"),"groups")
-    #    maps:
-    #       groups:
-    #          - name: dn1
-    #            value: peer
-    #          - name: dn2
-    #            value: client
-    # The value of the user's 'hf.Registrar.Roles' attribute is then computed to be
-    # "peer,client,dn3".  This is because the value of 'attr("member")' is
-    # "dn1,dn2,dn3", and the call to 'map' with a 2nd argument of
-    # "group" replaces "dn1" with "peer" and "dn2" with "client".
-    maps:
-      groups:
-        - name:
-          value:
+# ldap:
+#   # Enables or disables the LDAP client (default: false)
+#   # If this is set to true, the "registry" section is ignored.
+#   enabled: false
+#   # The URL of the LDAP server
+#   url: ldap://<adminDN>:<adminPassword>@<host>:<port>/<base>
+#   # TLS configuration for the client connection to the LDAP server
+#   tls:
+#     certfiles:
+#     client:
+#       certfile:
+#       keyfile:
+#   # Attribute related configuration for mapping from LDAP entries to Fabric CA attributes
+#   attribute:
+#     # 'names' is an array of strings containing the LDAP attribute names which are
+#     # requested from the LDAP server for an LDAP identity's entry
+#     names: ["uid", "member"]
+#     # The 'converters' section is used to convert an LDAP entry to the value of
+#     # a fabric CA attribute.
+#     # For example, the following converts an LDAP 'uid' attribute
+#     # whose value begins with 'revoker' to a fabric CA attribute
+#     # named "hf.Revoker" with a value of "true" (because the boolean expression
+#     # evaluates to true).
+#     #    converters:
+#     #       - name: hf.Revoker
+#     #         value: attr("uid") =~ "revoker*"
+#     converters:
+#       - name:
+#         value:
+#     # The 'maps' section contains named maps which may be referenced by the 'map'
+#     # function in the 'converters' section to map LDAP responses to arbitrary values.
+#     # For example, assume a user has an LDAP attribute named 'member' which has multiple
+#     # values which are each a distinguished name (i.e. a DN). For simplicity, assume the
+#     # values of the 'member' attribute are 'dn1', 'dn2', and 'dn3'.
+#     # Further assume the following configuration.
+#     #    converters:
+#     #       - name: hf.Registrar.Roles
+#     #         value: map(attr("member"),"groups")
+#     #    maps:
+#     #       groups:
+#     #          - name: dn1
+#     #            value: peer
+#     #          - name: dn2
+#     #            value: client
+#     # The value of the user's 'hf.Registrar.Roles' attribute is then computed to be
+#     # "peer,client,dn3".  This is because the value of 'attr("member")' is
+#     # "dn1,dn2,dn3", and the call to 'map' with a 2nd argument of
+#     # "group" replaces "dn1" with "peer" and "dn2" with "client".
+#     maps:
+#       groups:
+#         - name:
+#           value:
 
 #############################################################################
 # Affiliations section. Fabric CA server can be bootstrapped with the
@@ -239,15 +284,23 @@ ldap:
 # department2 (used as businessunit2.department2) and department3 (businessunit2.department3)
 # are children of businessunit2.
 # Note: Affiliations are case sensitive except for the non-leaf affiliations
+# TODO NOTE TO everyone, i'd rather make it lowercase for all enlisted
 # (like businessunit1, department1, businessunit2) that are specified in the configuration file,
 # which are always stored in lower case.
 #############################################################################
 affiliations:
   org1:
-    - department1
-    - department2
+    - it #dno if IT
+    - marketing
+    - accounting
+    - human resources
+    - finance
+    - operations
   org2:
-    - department1
+    - sales
+    - marketing
+    - accounting
+    - human resources
 
 #############################################################################
 #  Signing section
@@ -271,14 +324,14 @@ signing:
       - digital signature
     expiry: 8760h
   profiles:
-    ca:
-      usage:
-        - cert sign
-        - crl sign
-      expiry: 43800h
-      caconstraint:
-        isca: true
-        maxpathlen: 0
+    # ca:
+    #   usage:
+    #     - cert sign
+    #     - crl sign
+    #   expiry: 43800h
+    #   caconstraint:
+    #     isca: true
+    #     maxpathlen: 0
     tls:
       usage:
         - signing
@@ -311,13 +364,13 @@ csr:
   keyrequest:
     algo: ecdsa
     size: 256
-  names:
-    - C: US
-      ST: "North Carolina"
+  names: #jus issuer stuff doesnt rly matter; ctrl i -> security -> view certificate on some site to check
+    - C: PH
+      ST: "Cavite"
       L:
       O: Hyperledger
       OU: Fabric
-  hosts:
+  hosts: # TODO dno if dis needs setup
     - 1e917617f089
     - localhost
   ca:
@@ -448,11 +501,15 @@ intermediate:
 #############################################################################
 cfg:
   identities:
-    passwordattempts: 10
+    passwordattempts: 10 # TODO change this on prdo
+    allowremove: true # allow editing of affil. w.o. server restart
+  affiliations:
+    allowremove: true # allow editing of affil. w.o. server restart
 
 ###############################################################################
 #
-#    Operations section
+#    Operations section:
+#  can be used for health monitoring of the CA and relies on mutual TLS for communication with the node.
 #
 ###############################################################################
 operations:
@@ -481,7 +538,7 @@ operations:
 
 ###############################################################################
 #
-#    Metrics section
+#    Metrics section: If you want to monitor the metrics for the CA
 #
 ###############################################################################
 metrics:

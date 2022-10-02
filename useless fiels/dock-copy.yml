@@ -1,0 +1,85 @@
+# services:
+#   fabric-ca-server:
+#     image: hyperledger/fabric-ca
+#     container_name: fabric-ca-server
+#     ports:
+#       - "7054:7054"
+#     environment:
+#       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+#     volumes:
+#       - "./fabric-ca-server:/etc/hyperledger/fabric-ca-server"
+#     command: sh -c 'fabric-ca-server start -b admin:adminpw'
+
+# # https://hyperledger-fabric-ca.readthedocs.io/en/latest/operations_guide.html#setup-tls-ca
+#   ca-tls:
+#     container_name: ca-tls
+#     image: hyperledger/fabric-ca
+#     command: sh -c 'fabric-ca-server start -d -b tls-ca-admin:tls-ca-adminpw --port 7052'
+#     environment:
+#     - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca/crypto
+#     - FABRIC_CA_SERVER_TLS_ENABLED=true
+#     - FABRIC_CA_SERVER_CSR_CN=ca-tls
+#     - FABRIC_CA_SERVER_CSR_HOSTS=0.0.0.0
+#     - FABRIC_CA_SERVER_DEBUG=true
+#     volumes:
+#     - /etc/hyperledger/tls/ca:/etc/hyperledger/fabric-ca
+#     networks:
+#     - fabric-ca
+#     ports:
+#     - 7052:7052
+
+# # https://hyperledger-fabric-ca.readthedocs.io/en/latest/operations_guide.html#setup-orderer-org-ca
+# # TODO this is the orderer Org CA
+#   rca-org0:
+#     container_name: rca-org0
+#     image: hyperledger/fabric-ca
+#     command: /bin/bash -c 'fabric-ca-server start -d -b rca-org0-admin:rca-org0-adminpw --port 7053'
+#     environment:
+#       - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca/crypto
+#       - FABRIC_CA_SERVER_TLS_ENABLED=true
+#       - FABRIC_CA_SERVER_CSR_CN=rca-org0
+#       - FABRIC_CA_SERVER_CSR_HOSTS=0.0.0.0
+#       - FABRIC_CA_SERVER_DEBUG=true
+#     volumes:
+#       - /etc/hyperledger/org0/ca:/etc/hyperledger/fabric-ca
+#     networks:
+#       - fabric-ca
+#     ports:
+#       - 7053:7053
+
+# # TODO this is the Org CA1
+#   duckchain-org1:
+#     container_name: duckchain-org1
+#     image: hyperledger/fabric-ca
+#     command: /bin/bash -c 'fabric-ca-server start -d -b duckchain-org1-admin:duckchain-org1-adminpw'
+#     environment:
+#         - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca/crypto
+#         - FABRIC_CA_SERVER_TLS_ENABLED=true
+#         - FABRIC_CA_SERVER_CSR_CN=duckchain-org1
+#         - FABRIC_CA_SERVER_CSR_HOSTS=0.0.0.0
+#         - FABRIC_CA_SERVER_DEBUG=true
+#     volumes:
+#         - /etc/hyperledger/org1/ca:/etc/hyperledger/fabric-ca
+#     networks:
+#         - fabric-ca
+#     ports:
+#         - 7056:7056 
+
+# # TODO this is the Org CA2
+
+#   quacken-org2:
+#     container_name: quacken-org2
+#     image: hyperledger/fabric-ca
+#     command: /bin/bash -c 'fabric-ca-server start -d -b quacken-org2-quacken:rca-org2-adminpw --port 7055'
+#     environment:
+#       - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca/crypto
+#       - FABRIC_CA_SERVER_TLS_ENABLED=true
+#       - FABRIC_CA_SERVER_CSR_CN=quacken-org2
+#       - FABRIC_CA_SERVER_CSR_HOSTS=0.0.0.0
+#       - FABRIC_CA_SERVER_DEBUG=true
+#     volumes:
+#       - /etc/hyperledger/org2/ca:/etc/hyperledger/fabric-ca
+#     networks:
+#       - fabric-ca
+#     ports:
+#       - 7055:7055

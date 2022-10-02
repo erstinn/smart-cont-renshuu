@@ -1,1 +1,0 @@
-The TLS CA root certificate, named ca-cert.pem, is generated on the TLS CA after TLS is enabled in the server config .yaml file. To enable TLS communications for your CA client, you need a tls-root-cert sub-folder to store the root certificate. Later in this topic, we will copy the root certificate into this folder.

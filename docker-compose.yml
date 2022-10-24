@@ -37,7 +37,7 @@ services:
     #     command: sh -c 'fabric-ca-server start -d -b duckchain-org1-admin:duckchain-org1-adminpw --port 7069'
     #     environment:
     #         - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca/crypto
-    #         - FABRIC_CA_SERVER_TLS_ENABLED=true
+    #         -     =true
     #         - FABRIC_CA_SERVER_CSR_CN=rca-org1
     #         - FABRIC_CA_SERVER_CSR_HOSTS=0.0.0.0
     #         - FABRIC_CA_SERVER_DEBUG=true
@@ -97,7 +97,7 @@ services:
         working_dir: /opt/gopath/src/github.com/hyperledger/fabric/org1/peer2
         volumes:
             - /var/run:/host/var/run
-            - /home/eringi/.fabric-ca-client/org1/peer1:/etc/hyperledger/org1/peer2
+            - /home/eringi/.fabric-ca-client/org1/peer2:/etc/hyperledger/org1/peer2
 
         networks:
             - fabric-ca
@@ -123,8 +123,8 @@ services:
     # https://hyperledger-fabric-ca.readthedocs.io/en/latest/operations_guide.html#launch-orderer
     # idk purpose of this specifically but:
     # "Once you have created the genesis block and the channel transaction, you can define an orderer service that points to the genesis.block created above."
-    duckchain-orderer1:
-        container_name: duckchain-orderer1
+    orderer1-org1:
+        container_name: orderer1-org1
         image: hyperledger/fabric-orderer:amd64-2.4
         environment:
             - ORDERER_HOME=/etc/hyperledger/orderer
@@ -135,13 +135,13 @@ services:
             - ORDERER_GENERAL_LOCALMSPID=org1MSP
             - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/org1/orderer/msp
             # - ORDERER_GENERAL_TLS_ENABLED=true
-            # - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/org1/orderer/tls-msp/signcerts/cert.pem
+            # - ORDERER_GENERAL_TLS_CERTIFICATE=/et c/hyperledger/org1/orderer/tls-msp/signcerts/cert.pem
             # - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/org1/orderer/tls-msp/keystore/key.pem
             # - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/org1/orderer/tls-msp/tlscacerts/tls-0-0-0-0-7052.pem]
             - ORDERER_GENERAL_LOGLEVEL=debug
             - ORDERER_DEBUG_BROADCASTTRACEDIR=data/logs
         volumes:
-            - /etc/hyperledger/org1/orderer:/etc/hyperledger/org1/orderer/
+            - /home/eringi/.fabric-ca-client/org1/orderer:/etc/hyperledger/org1/orderer/
         networks:
             - fabric-ca
 
@@ -169,3 +169,5 @@ services:
             - /home/eringi/.fabric-ca-client/org1/admin:/etc/hyperledger/org1/admin
         networks:
             - fabric-ca
+
+    #  todo this do be ordering service

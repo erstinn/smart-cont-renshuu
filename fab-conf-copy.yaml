@@ -188,7 +188,7 @@ ldap:
     names: ["uid", "member"]
     # The 'converters' section is used to convert an LDAP entry to the value of
     # a fabric CA attribute.
-    # For example, the following converts an LDAP 'uid' attribute
+    # For example, the following converts an   'uid' attribute
     # whose value begins with 'revoker' to a fabric CA attribute
     # named "hf.Revoker" with a value of "true" (because the boolean expression
     # evaluates to true).
